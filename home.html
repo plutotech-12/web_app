@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>To-Do List App</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #153677, #4e085f);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .container {
+      background: rgb(177, 177, 177);
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      width: 350px;
+    }
+    .input-section {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+    #taskInput {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 30px;
+      outline: none;
+    }
+    #addBtn {
+      padding: 10px 15px;
+      border: none;
+      background: #28a745;
+      color: white;
+      border-radius: 400px;
+      cursor: pointer;
+    }
+    #addBtn:hover { background: #218838; }
+
+    h1 {
+      text-align: center;
+      color: #002765;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      margin: 0 0 20px;
+      font-size: 22px;
+    }
+    h1 img { width: 30px; }
+
+    ul { padding: 0; margin: 0; }
+    ul li {
+      list-style: none;
+      font-size: 17px;
+      padding: 12px 40px 12px 50px;
+      user-select: none;
+      cursor: pointer;
+      position: relative;
+      background: rgba(255,255,255,0.6);
+      border-radius: 10px;
+      margin-bottom: 8px;
+    }
+    ul li::before{
+      content: '';
+      position: absolute;
+      height: 25px;
+      width: 25px;
+      border-radius: 50%;
+      background-size: cover;
+      background-image: url(unchecked.png);
+      background-position: center;
+      top: 10px;
+      left: 8px;
+    }
+    ul li.checked{
+      color: #555;
+      text-decoration: line-through;
+      background: rgba(255,255,255,0.4);
+    }
+    ul li.checked::before{
+      background-image: url(checked.png);
+    }
+
+    .delete-btn {
+      position: absolute;
+      right: 8px;
+      top: 8px;
+      background: red;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 5px 10px;
+      cursor: pointer;
+    }
+    .delete-btn:hover { background: darkred; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>TO-DO LIST <img src="icon.png" alt="App Icon" /></h1>
+    <div class="input-section">
+      <input type="text" id="taskInput" placeholder="Enter a new task" />
+      <button id="addBtn" type="button" onclick="addTask()">Add</button>
+    </div>
+    <ul id="list-container"></ul>
+  </div>
+
+  <script>
+    (function () {
+      const STORAGE_KEY = 'todo_list_html_v1';
+      const taskInput = document.getElementById('taskInput');
+      const list = document.getElementById('list-container');
+
+      // Save current list HTML to localStorage
+      function save() {
+        try {
+          localStorage.setItem(STORAGE_KEY, list.innerHTML);
+        } catch (e) {
+          console.warn('localStorage save failed:', e);
+        }
+      }
+
+      // Restore list HTML from localStorage
+      function load() {
+        const data = localStorage.getItem(STORAGE_KEY);
+        if (data) {
+          list.innerHTML = data;
+        }
+      }
+
+      // Create a new <li> with delete button
+      function createLi(text) {
+        const li = document.createElement('li');
+        li.appendChild(document.createTextNode(text));
+
+        const delBtn = document.createElement('button');
+        delBtn.textContent = '✖';
+        delBtn.className = 'delete-btn';
+        li.appendChild(delBtn);
+
+        return li;
+      }
+
+      // Public addTask (for the inline onclick)
+      function addTask() {
+        const text = taskInput.value.trim();
+        if (!text) {
+          alert('Please enter a task!');
+          return;
+        }
+        const li = createLi(text);
+        list.appendChild(li);
+        taskInput.value = '';
+        save();
+      }
+
+      // Event delegation for toggle & delete
+      list.addEventListener('click', (e) => {
+        const target = e.target;
+
+        if (target.classList.contains('delete-btn')) {
+          target.parentElement.remove();
+          save();
+          return;
+        }
+
+        if (target.tagName === 'LI') {
+          target.classList.toggle('checked');
+          save();
+        }
+      });
+
+      // Add with Enter key
+      taskInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') addTask();
+      });
+
+      // Load on startup
+      load();
+
+      // Expose addTask globally for inline onclick
+      window.addTask = addTask;
+    })();
+  </script>
+</body>
+</html>
